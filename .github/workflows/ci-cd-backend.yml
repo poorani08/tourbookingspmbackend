@@ -45,6 +45,7 @@ jobs:
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
 
-      - name: Deploy to Server
+      - name: Test SSH connection and Deploy
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@123.45.67.89 'bash /home/ubuntu/deploy.sh'
+          echo "Testing SSH connection and deploying to the server..."
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -v ubuntu@123.45.67.89 'bash -x /home/ubuntu/deploy.sh'

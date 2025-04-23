@@ -41,6 +41,7 @@ jobs:
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H your-server.com >> ~/.ssh/known_hosts
+          echo "SSH setup complete."
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
 

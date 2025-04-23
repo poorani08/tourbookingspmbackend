@@ -47,4 +47,3 @@ jobs:
       - name: Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no user@your-server.com 'bash deploy.sh'  # Modify to your deployment steps
-

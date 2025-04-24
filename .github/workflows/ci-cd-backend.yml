@@ -1,21 +1,50 @@
-deploy:
-  runs-on: self-hosted  # still correct
-  needs: build
+name: Backend CI/CD Pipeline
 
-  steps:
-    - name: Check out code
-      uses: actions/checkout@v2
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-    - name: Set up SSH
-      shell: pwsh
-      run: |
-        mkdir $HOME\.ssh
-        Set-Content -Path $HOME\.ssh\id_rsa -Value "${{ secrets.DEPLOY_KEY }}" -NoNewline
-        icacls $HOME\.ssh\id_rsa /inheritance:r
-        icacls $HOME\.ssh\id_rsa /grant:r "$($env:USERNAME):(R)"
-        ssh-keyscan 192.168.1.24 >> $HOME\.ssh\known_hosts
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-    - name: Deploy to server
-      shell: pwsh
-      run: |
-        ssh -i $HOME\.ssh\id_rsa -o StrictHostKeyChecking=no poorani@192.168.1.24 "bash -x /home/ubuntu/deploy.sh"
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+  deploy:
+    runs-on: self-hosted  # Make sure this matches your runner labels
+    needs: build
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH for Deployment
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 192.168.1.24 >> ~/.ssh/known_hosts
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Deploy to server
+        run: |
+          echo "Deploying to remote server..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no poorani@192.168.1.24 "bash -x /home/ubuntu/deploy.sh"

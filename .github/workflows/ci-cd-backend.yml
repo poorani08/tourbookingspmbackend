@@ -3,37 +3,36 @@ name: Backend CI/CD Pipeline
 on:
   push:
     branches:
-      - main   # Trigger when pushing to the main branch
+      - main
   pull_request:
     branches:
-      - main   # Trigger on PR creation/updates to the main branch
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Runner environment, you can also use other OS types
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Check out code from GitHub
-        uses: actions/checkout@v2  # This action checks out your code from GitHub
+      - name: Check out code
+        uses: actions/checkout@v2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2  # Setup the Node.js environment (skip if not applicable)
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'  # Optional: specify your Node.js version
 
       - name: Install dependencies
-        run: |
-          npm install  # Modify for your dependency manager (e.g., pip, gradle)
+        run: npm install
 
       - name: Run tests
-        run: |
-          npm test  # Add your backend test commands here (e.g., `npm run test`, `pytest`)
+        run: npm test
 
   deploy:
-    runs-on: ubuntu-latest
-  # 👈 Change to self-hosted
-    needs: build   # This ensures deploy runs after the build job
+    runs-on: ubuntu  # Change to `self-hosted` if you are using a self-hosted runner
+    needs: build
 
     steps:
-      - name: Checkout code
+      - name: Check out code
         uses: actions/checkout@v2
 
       - name: Set up SSH for Deployment
@@ -41,11 +40,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-          echo "SSH setup complete."
+          ssh-keyscan -H 192.168.1.24 >> ~/.ssh/known_hosts
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
 
       - name: Deploy to server
-  run: |
-    ssh -o StrictHostKeyChecking=no poorani@192.168.1.24 "echo Hello from local Ubuntu!"
+        run: |
+          echo "Deploying to remote server..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no poorani@192.168.1.24 "bash -x /home/ubuntu/deploy.sh"

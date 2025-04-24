@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'  # Optional: specify your Node.js version
+          node-version: '16'
 
       - name: Install dependencies
         run: npm install
@@ -28,7 +28,7 @@ jobs:
         run: npm test
 
   deploy:
-    runs-on: ubuntu  # Change to `self-hosted` if you are using a self-hosted runner
+    runs-on: self-hosted  # Make sure this matches your runner labels
     needs: build
 
     steps:

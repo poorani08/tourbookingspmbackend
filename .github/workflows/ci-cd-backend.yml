@@ -1,51 +1,24 @@
-name: Backend CI/CD Pipeline
+name: Simple Deploy
 
 on:
   push:
-    branches:
-      - main   # Trigger when pushing to the main branch
-  pull_request:
-    branches:
-      - main   # Trigger on PR creation/updates to the main branch
+    branches: [main]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest  # Runner environment, you can also use other OS types
-
-    steps:
-      - name: Check out code from GitHub
-        uses: actions/checkout@v2  # This action checks out your code from GitHub
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2  # Setup the Node.js environment (skip if not applicable)
-
-      - name: Install dependencies
-        run: |
-          npm install  # Modify for your dependency manager (e.g., pip, gradle)
-
-      - name: Run tests
-        run: |
-          npm test  # Add your backend test commands here (e.g., `npm run test`, `pytest`)
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build   # This ensures deploy runs after the build job
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up SSH for Deployment
+      - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-          echo "SSH setup complete."
-        env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          ssh-keyscan -H 123.45.67.89 >> ~/.ssh/known_hosts
 
-      - name: Test SSH connection and Deploy
+      - name: Deploy
         run: |
-          echo "Testing SSH connection and deploying to the server..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -v ubuntu@123.45.67.89 'bash -x /home/ubuntu/deploy.sh'
+          ssh -i ~/.ssh/id_rsa ubuntu@123.45.67.89 "bash ~/deploy.sh"

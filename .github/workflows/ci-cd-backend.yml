@@ -28,7 +28,8 @@ jobs:
           npm test  # Add your backend test commands here (e.g., `npm run test`, `pytest`)
 
   deploy:
-    runs-on: self-hosted  # 👈 Change to self-hosted
+    runs-on: ubuntu-latest
+  # 👈 Change to self-hosted
     needs: build   # This ensures deploy runs after the build job
 
     steps:
